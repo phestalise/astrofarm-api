@@ -8,6 +8,7 @@ namespace AstroFarm.Api.Models
     {
         [Key]
         [Column("ID_PRODUTOR")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
@@ -36,9 +37,9 @@ namespace AstroFarm.Api.Models
         public string Cidade { get; set; } = string.Empty;
 
         [Column("DT_CADASTRO")]
-        public DateTime DtCadastro { get; set; } = DateTime.Now;
+        public DateTime DtCadastro { get; set; } = DateTime.UtcNow;
 
-        public ICollection<Propriedade> Propriedades { get; set; }
-            = new List<Propriedade>();
+        [NotMapped]
+        public ICollection<Propriedade>? Propriedades { get; set; }
     }
 }

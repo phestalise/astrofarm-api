@@ -128,5 +128,46 @@ namespace AstroFarm.Api.Controllers
 
             return Ok(resultado);
         }
+
+        // ========================
+        // NOVO MÉTODO POST
+        // ========================
+        [HttpPost]
+        public async Task<ActionResult<object>> PostLeitura([FromBody] LeituraDto dto)
+        {
+            if (dto == null || dto.IdPropriedade <= 0)
+                return BadRequest(new { message = "Propriedade inválida." });
+
+            var propriedade = await _context.Propriedades.FindAsync(dto.IdPropriedade);
+            if (propriedade == null)
+                return NotFound(new { message = "Propriedade não encontrada." });
+
+            var leitura = new LeituraSatelital
+            {
+                DtLeitura = DateTime.UtcNow,
+                Ndvi = dto.Ndvi,
+                Temperatura = dto.Temperatura,
+                Umidade = dto.Umidade,
+                Precipitacao = dto.Precipitacao,
+                FonteSatelite = dto.FonteSatelite ?? "App",
+                IdPropriedade = dto.IdPropriedade
+            };
+
+            _context.LeiturasSatelitais.Add(leitura);
+            await _context.SaveChangesAsync();
+
+            var result = new
+            {
+                id = leitura.Id,
+                propriedadeId = leitura.IdPropriedade,
+                ndvi = leitura.Ndvi,
+                temperatura = leitura.Temperatura,
+                umidade = leitura.Umidade,
+                dataLeitura = leitura.DtLeitura.ToString("yyyy-MM-ddTHH:mm:ss"),
+                statusSolo = CalcStatusSolo(leitura.Ndvi)
+            };
+
+            return CreatedAtAction(nameof(GetUltima), new { propriedadeId = leitura.IdPropriedade }, result);
+        }
     }
 }
